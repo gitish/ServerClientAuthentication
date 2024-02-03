@@ -35,10 +35,19 @@ For more details check [source](https://www.digicert.com/faq/public-trust-and-ce
 |------------|---------|
 |![image](https://github.com/gitish/ServerClientAuthentication/assets/16752447/73a0a49b-381a-4651-9816-c5813887450c) | <img width="419" alt="image" src="https://github.com/gitish/ServerClientAuthentication/assets/16752447/7af8f2c8-6210-4818-8bd8-c7c542b9da09"> |
 
-
+| Keystore | Truststore |
+|------------|---------|
+|Keystore is used to store private key and identity certificates that a specific program should present to both parties (server or client) for verification.| Truststore is used to store certificates from Certified Authorities (CA) that verify the certificate presented by the server in SSL connection.|
+|Keystore stores your credential|Truststore stores others credentials|
+|Keystore is needed when you are setting up the server side on SSL|Truststore setup is required for the successful connection at the client side|
+|Client will store its private key and identify certificate on Keystore|Server will authenticate the client against the certificate stored on the server’s Truststore|
+|javax.net.ssl.keyStore is used to specify Keystore | javax.net.ssl.trustStore is used to specify Truststore |
+|Keystore passwords are stored in plaintext that is only readable by the specific group|Truststore passwords are stored in plaintext that can be read by everyone|
+|Keystore contains private and sensitive information|Truststore doesn’t contain private and sensitive information|
 
 ## Certificates
-Although Alice could have sent a private message to the bank, signed it and ensured the integrity of the message, she still needs to be sure that she is really communicating with the bank. This means that she needs to be sure that the public key she is using is part of the bank's key-pair, and not an intruder's. Similarly, the bank needs to verify that the message signature really was signed by the private key that belongs to Alice.
+Suppose Sid wants to send a message to his bank to transfer some money. Sid would like the message to be private, since it will include information such as his account number and transfer amount. One solution is to use a cryptographic algorithm, a technique that would transform her message into an encrypted form, unreadable until it is decrypted. Once in this form, the message can only be decrypted by using a secret key. Without the key the message is useless: good cryptographic algorithms make it so difficult for intruders to decode the original text that it isn't worth their effort.
+Although Sid could have sent a private message to the bank, signed it and ensured the integrity of the message, He still needs to be sure that He is really communicating with the bank. This means that he needs to be sure that the public key he is using is part of the bank's key-pair, and not an intruder's. Similarly, the bank needs to verify that the message signature really was signed by the private key that belongs to Sid.
 
 If each party has a certificate which validates the other's identity, confirms the public key, and is signed by a trusted agency, then both can be assured that they are communicating with whom they think they are. Such a trusted agency is called a Certificate Authority and certificates are used for authentication.
 
@@ -46,11 +55,12 @@ If each party has a certificate which validates the other's identity, confirms t
 A certificate associates a public key with the real identity of an individual, server, or other entity, known as the subject. As shown in Table 1, information about the subject includes identifying information (the distinguished name) and the public key. It also includes the identification and signature of the Certificate Authority that issued the certificate and the period of time during which the certificate is valid. It may have additional information (or extensions) as well as administrative information for the Certificate Authority's use, such as a serial number.
 
 ### Table 1: Certificate Information
-Subject	Distinguished Name, Public Key
-Issuer	Distinguished Name, Signature
-Period of Validity	Not Before Date, Not After Date
-Administrative Information	Version, Serial Number
-Extended Information	Basic Constraints, Netscape Flags, etc.
+**Subject**: Distinguished Name, Public Key
+**Issuer**: Distinguished Name, Signature
+**Period of Validity**: Not Before Date, Not After Date
+**Administrative Information**: Version, Serial Number
+**Extended Information**: Basic Constraints, Netscape Flags, etc.
+
 A distinguished name is used to provide an identity in a specific context -- for instance, an individual might have a personal certificate as well as one for their identity as an employee. Distinguished names are defined by the X.509 standard [X509], which defines the fields, field names and abbreviations used to refer to the fields (see Table 2).
 
 ### Table 2: Distinguished Name Information
@@ -67,58 +77,37 @@ A Certificate Authority may define a policy specifying which distinguished field
 
 The binary format of a certificate is defined using the ASN.1 notation [ASN1] [PKCS]. This notation defines how to specify the contents and encoding rules define how this information is translated into binary form. The binary encoding of the certificate is defined using Distinguished Encoding Rules (DER), which are based on the more general Basic Encoding Rules (BER). For those transmissions which cannot handle binary, the binary form may be translated into an ASCII form by using Base64 encoding [MIME]. When placed between begin and end delimiter lines (as below), this encoded version is called a PEM ("Privacy Enhanced Mail") encoded certificate.
 
-Example of a PEM-encoded certificate (snakeoil.crt)
+Example of a PEM-encoded certificate (github.com.cer)
 ```
 -----BEGIN CERTIFICATE-----
-MIIC7jCCAlegAwIBAgIBATANBgkqhkiG9w0BAQQFADCBqTELMAkGA1UEBhMCWFkx
-FTATBgNVBAgTDFNuYWtlIERlc2VydDETMBEGA1UEBxMKU25ha2UgVG93bjEXMBUG
-A1UEChMOU25ha2UgT2lsLCBMdGQxHjAcBgNVBAsTFUNlcnRpZmljYXRlIEF1dGhv
-cml0eTEVMBMGA1UEAxMMU25ha2UgT2lsIENBMR4wHAYJKoZIhvcNAQkBFg9jYUBz
-bmFrZW9pbC5kb20wHhcNOTgxMDIxMDg1ODM2WhcNOTkxMDIxMDg1ODM2WjCBpzEL
-MAkGA1UEBhMCWFkxFTATBgNVBAgTDFNuYWtlIERlc2VydDETMBEGA1UEBxMKU25h
-a2UgVG93bjEXMBUGA1UEChMOU25ha2UgT2lsLCBMdGQxFzAVBgNVBAsTDldlYnNl
-cnZlciBUZWFtMRkwFwYDVQQDExB3d3cuc25ha2VvaWwuZG9tMR8wHQYJKoZIhvcN
-AQkBFhB3d3dAc25ha2VvaWwuZG9tMIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKB
-gQDH9Ge/s2zcH+da+rPTx/DPRp3xGjHZ4GG6pCmvADIEtBtKBFAcZ64n+Dy7Np8b
-vKR+yy5DGQiijsH1D/j8HlGE+q4TZ8OFk7BNBFazHxFbYI4OKMiCxdKzdif1yfaa
-lWoANFlAzlSdbxeGVHoT0K+gT5w3UxwZKv2DLbCTzLZyPwIDAQABoyYwJDAPBgNV
-HRMECDAGAQH/AgEAMBEGCWCGSAGG+EIBAQQEAwIAQDANBgkqhkiG9w0BAQQFAAOB
-gQAZUIHAL4D09oE6Lv2k56Gp38OBDuILvwLg1v1KL8mQR+KFjghCrtpqaztZqcDt
-2q2QoyulCgSzHbEGmi0EsdkPfg6mp0penssIFePYNI+/8u9HT4LuKMJX15hxBam7
-dUHzICxBVC1lnHyYGjDuAMhe396lYAn8bCld1/L4NMGBCQ==
+MIID5jCCAs6gAwIBAgIRAIqsX/INb037gLKu1Y9eXDEwDQYJKoZIhvcNAQELBQAw
+gcIxCzAJBgNVBAYTAkdCMQswCQYDVQQIEwJHQjEPMA0GA1UEBxMGbG9uZG9uMRgw
+FgYDVQQKEw9QdWJsaWNpcyBHcm91cGUxKTAnBgNVBAsTIGNkODUwYTQ2MWQxNzRi
+MWU3YTBkYjk3MDQ4YWQ0YTI1MSkwJwYDVQQDEyBjYS5wdWJsaWNpc2dyb3VwZS5k
+ZS5nb3Nrb3BlLmNvbTElMCMGCSqGSIb3DQEJARYWY2VydGFkbWluQG5ldHNrb3Bl
+LmNvbTAeFw0yMzEyMjcxNjE1MzNaFw0yNTAxMjUxNjE1MzNaMBcxFTATBgNVBAMM
+DCouZ2l0aHViLmNvbTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBALqO
+uAftyP6tOBcLP1Z2aLI2LplFoY9+RefFRUsP61+QbpEVO8yjpSMfH9L+NeF6Da0b
+Scc+KUjowo87srYilQawKi3w1Zj7UEYDTCrdq6osxjGyajLmuFcj5wa9li7nGk1i
+E0yuFzw/pzGt9xt9a/Xf34aCmb/5jspWXomTN5SG17UZ/DdQGs7ommzKH0Cqu+vH
+Sm0MerW8aZy4d2XqyWBR25arMJH09W8+acRWM1IVuvyF/jbKviD6MFdvxG8L2Ykp
+NaWAc7T35zcrRamCWGHoMAwqSIk1xRICAZSxRr6jHCzACVJIeOZ2UExQmljwl0Ds
+rmiRA3Brul4BeJFW11cCAwEAAaOBgDB+MAkGA1UdEwQCMAAwHQYDVR0OBBYEFDvv
+VHYiz+OtVqQWOkhrEXZIAcUOMCMGA1UdEQQcMBqCDCouZ2l0aHViLmNvbYIKZ2l0
+aHViLmNvbTAOBgNVHQ8BAf8EBAMCBaAwHQYDVR0lBBYwFAYIKwYBBQUHAwEGCCsG
+AQUFBwMCMA0GCSqGSIb3DQEBCwUAA4IBAQBKefzMmyOsWBR3Z1lP9CBy7A97zFG1
+xC1p3qbIV0mjjBxsDDaRJTnj6k5LoLOKQ/OwHJRwq5xK/vp9l7FoJs2DKh5TL0Qk
+Nwp3mPAZJvFM34n/ti7XT65beRMiBFLwoWREwwEm0gl82QBSf0VlZa4Q+91zbeZx
+9gWedh3578HTh2+owCIZZ07E+sXb1TQGKcFqnzi0ggykTHtxib+MY3q0XavEpkQb
+md7oGMuw0AGbRfffAnO7gBpNFX9iDuH3iDoJYKCvLWgUcXeu4dhcHUeKpW2Yxa9j
+qZA77XtSUsR03u+Jyw8xtFyQqFv/00eOBOhSK25D3jAweT1WFOWexg7H
 -----END CERTIFICATE-----
 ```
-Certificate Authorities
+### Certificate Authorities
 By verifying the information in a certificate request before granting the certificate, the Certificate Authority assures itself of the identity of the private key owner of a key-pair. For instance, if Alice requests a personal certificate, the Certificate Authority must first make sure that Alice really is the person the certificate request claims she is.
 
-Certificate Chains
+### Certificate Chains
 A Certificate Authority may also issue a certificate for another Certificate Authority. When examining a certificate, Alice may need to examine the certificate of the issuer, for each parent Certificate Authority, until reaching one which she has confidence in. She may decide to trust only certificates with a limited chain of issuers, to reduce her risk of a "bad" certificate in the chain.
 
-Creating a Root-Level CA
+### Creating a Root-Level CA
 As noted earlier, each certificate requires an issuer to assert the validity of the identity of the certificate subject, up to the top-level Certificate Authority (CA). This presents a problem: who can vouch for the certificate of the top-level authority, which has no issuer? In this unique case, the certificate is "self-signed", so the issuer of the certificate is the same as the subject. Browsers are preconfigured to trust well-known certificate authorities, but it is important to exercise extra care in trusting a self-signed certificate. The wide publication of a public key by the root authority reduces the risk in trusting this key -- it would be obvious if someone else publicized a key claiming to be the authority.
-
-A number of companies, such as Thawte and VeriSign have established themselves as Certificate Authorities. These companies provide the following services:
-
-Verifying certificate requests
-Processing certificate requests
-Issuing and managing certificates
-It is also possible to create your own Certificate Authority. Although risky in the Internet environment, it may be useful within an Intranet where the organization can easily verify the identities of individuals and servers.
-
-| Keystore | Truststore |
-|------------|---------|
-|Keystore is used to store private key and identity certificates that a specific program should present to both parties (server or client) for verification.| Truststore is used to store certificates from Certified Authorities (CA) that verify the certificate presented by the server in SSL connection.|
-|Keystore stores your credential|Truststore stores others credentials|
-|Keystore is needed when you are setting up the server side on SSL|Truststore setup is required for the successful connection at the client side|
-|Client will store its private key and identify certificate on Keystore|Server will authenticate the client against the certificate stored on the server’s Truststore|
-|javax.net.ssl.keyStore is used to specify Keystore | javax.net.ssl.trustStore is used to specify Truststore |
-|Keystore passwords are stored in plaintext that is only readable by the specific group|Truststore passwords are stored in plaintext that can be read by everyone|
-|Keystore contains private and sensitive information|Truststore doesn’t contain private and sensitive information
-
-
-
-
-
-
-
-
-
